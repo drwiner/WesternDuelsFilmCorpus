@@ -1,0 +1,31 @@
+bandit2gun
+bandit3 - thug
+bandit2 - thug
+german - dueler
+jefe&bandit2 - thug
+dusty - amigo
+jefe - thug
+germangun - duel-weapon
+building
+germanchest
+bandit3gun
+nedgun - duel-weapon
+guapocig
+gate
+ned&jefe
+ned - dueler
+lucky - amigo
+bandit3body
+german2 - thug
+knife
+stage
+german2gun
+nedbelt
+crowd - observer
+german2body
+pinata
+guapo - thug
+nedholster
+
+_
+ned&jefe = ned jefe

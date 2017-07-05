@@ -1,0 +1,18 @@
+nessuno - dueler
+jackbody
+cameraman - observer
+jackgun - duel-weapon
+street - duel-location
+jack&nessuno
+nessunogun - duel-weapon
+crowd - observer
+camera
+jack - dueler
+cameraman&assistant
+nessunohat
+nessunocoat
+assistant
+
+_
+cameraman&assistant = cameraman assistant
+jack&nessuno = jack nessuno

@@ -1,0 +1,29 @@
+mortimerbelt
+mortimercoat
+indiogun - duel-weapon
+mortimerchain
+rocks
+housedoor
+moncogun
+housewindow
+ninogun
+ninobody
+indiolocket
+moncorifle
+mortimer&indio
+indio - dueler
+mortimergun - duel-weapon
+nino
+moncolocket
+circlerocks
+horsewindow
+mortimer - dueler
+monco - amigo
+indiobody
+house
+moncobelt
+monco&mortimer
+
+_
+monco&mortimer = monco mortimer
+mortimer&indio = mortimer indio

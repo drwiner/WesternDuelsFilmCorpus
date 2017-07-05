@@ -1,0 +1,34 @@
+dave - amigo
+billy - dueler
+dochorse
+thuga&thugb
+billygun - duel-weapon
+hendryrifle
+thugagun - duel-weapon
+handkerchief
+billyholster
+hendry - amigo
+gang
+thugbbody
+thugb - dueler
+thuga - dueler
+porch
+doc - amigo
+chisum - thug
+docrifle
+hendrygun
+chavez - amigo
+thug - thug
+billyhorse
+billy&gang
+thugaholster
+thugbholster
+house
+thugachest
+billy&ganghorses
+daveshotgun
+
+_
+gang = billy doc dave chavez
+billy&gang = billy gang
+thuga&thugb = thuga thugb

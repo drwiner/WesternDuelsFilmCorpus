@@ -1,0 +1,22 @@
+jedneckerchief
+jedrighthand
+barrels
+renoglass
+saloondoor
+renobody
+jed - dueler
+renowallet
+jedssaddle
+jedmatches
+cig
+jedshirt
+jedgun - duel-weapon
+renoalcohol
+reno - dueler
+horse
+porch
+bar
+saloon - duel-location
+renogun - duel-weapon
+bottle
+jedmouth
