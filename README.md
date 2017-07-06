@@ -1,5 +1,5 @@
 # WesternDuels_FilmCorpus
-===============================
+
 
 A shot-by-shot annotated corpus of Western duel scenes for advancing science of automated film understanding
 
@@ -67,4 +67,5 @@ Scenes' entity labels with annotated entity roles
 Action observations organized by action type rather than scene
 
 
-for more details, email drwiner@cs.utah.edu
+<br />
+For more details, email drwiner@cs.utah.edu
