@@ -1,12 +1,18 @@
 # WesternDuels_FilmCorpus
+===============================
+
 A shot-by-shot annotated corpus of Western duel scenes for advancing science of automated film understanding
 
 
 The YouTube playlist of Western Duel Scenes:
+===============================
+
 https://www.youtube.com/playlist?list=PLdY4RTlemjeLS-elE2mcBGMDLmtEGYEjt
 
 
 Contributing Authors:
+===============================
+
 
 David R. Winer (University of Utah, School of Computing)
 
@@ -22,6 +28,8 @@ R. Michael Young (University of Utah, School of Computing)
 
 
 Files:
+===============================
+
 
 "western_duel_film_corpus.json"
 The json output of the corpus
@@ -43,6 +51,8 @@ A draft of a workshop paper describing this work in more detail
 
 
 Folders:
+===============================
+
 
 'plot_inductions'
 Scene files with just action observations in chronological order
