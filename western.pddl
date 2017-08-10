@@ -1,25 +1,26 @@
 (define (domain western-duel)
   (:requirements)
-  (:types element char place item n - object
+  (:types element char place item - object
 		  observer bartender sheriff - char
 		  bar - place
-          gun ammo horse lasso door bottle cig tnt - item
+		  container - item
+		  door - container
+		  weapon - item
+		  gun ammo tnt - weapon
+          horse bottle cig - item
 		  step literal - element
 		  )
   (:predicates 	   
 			   (has ?c - char ?it - item)
 			   (at ?object - object ?place - place)
-			   (has ?char - char ?item - item)
 			   (= ?obj - object ?obj2 - object)
 			   (adj ?p1 - place ?p2 - place)
 			   (is ?literal - literal)
 			   (occurs ?step - step)
 			   
 			   ;guns
-			   (add ?i - n ?j - n)
-			   (subtract ?i - n ?j - n)
-			   (loaded-with ?gun - gun ?i - n)
-			   (> ?i - n ?j - n)
+			   (loaded ?g - gun)
+			   (loaded-with ?gun - gun ?ammo - ammo)
 			   (shot-at ?gun - gun ?target - object)
 			   (aimed-at ?g - gun ?target - object)
 			   (holstered ?g - gun)
@@ -29,30 +30,50 @@
 			   (hit-by-bullet ?ob - object)
 			   (arrested ?c - char)
 			   
-			   ;hands
-			   (ready-to-grab ?c - char ?g - gun)
-			   (hands-busy ?c - char)
-			   
 			   ;cognitive
 			   (stare-at ?c - char ?ob - object)
 			   (sees ?c - char ?it - item)
-               
-			   ;char states
+			   (facing ?c - char ?targ - object)
+			   (looking ?c - char ?targ - object)
+			   (staring ?c - char ?c2 - char)
+			   (provoked ?c - char)
+			   (bel-char ?c - char ?info - literal)
+			   (allies ?c1 - char ?c2 - char)
+			   (intends ?c - char ?goal - literal)
+			   
+			   ;physical states
 			   (alive ?char - char)
-			   (sitting ?c1 - char)
+			   (standing ?c1 - char)
+			   (on-ground ?c - char)
+			   (squared-off ?c - char ?c2 - char)
 			   (tied-up ?c - char)
-			   (cowboy ?c - char) ;cowboys can lasso
-			   (angry ?c - char)
-			   (scared ?c - char)
 			   (drunk ?c - char)
-			   (cowering ?c - char)
 			   
 			   ;item specific
-			   (open ?door - door)
+			   (opened ?container - container)
+			   (closed ?container - container)
 			   (on-horse ?c - char ?h - horse)
-			   (smoking ?c - char ?cig - cig)
-			   (drinking ?c - char ?bot - bottle)
+			   (smoking ?c - char)
+			   (drinking ?c - char)
 			   )
+			   
+  (:action leave
+	:parameters (?person - char ?p - place)
+	:precondition (and (alive ?person) (at ?person ?p))
+	:effect (not (at ?person ?p))
+	:agents (?person))
+	
+  (:action arrive
+	:parameters (?person - char ?p - place)
+	:precondition (and (alive ?person))
+	:effect (at ?person ?p)
+	:agents (?person))
+
+  (:action run
+    :parameters (?person - char ?from - place ?to - place)
+    :precondition(and (at ?person ?from) (alive ?person))
+    :effect (and (not (at ?person ?from)) (at ?person ?to))
+    :agents (?person))
 
   (:action arrest
 	:parameters (?sheriff - sheriff ?c - char ?p - place)
@@ -66,7 +87,7 @@
 					(at ?looker ?loc)
 					(at ?lookee ?loc)
 					(facing ?looker ?lookee)
-					(looking ?looker ?lookee ?place)
+					(looking ?looker ?lookee)
 					(alive ?looker)
 					)
 	:effect (and (staring ?looker ?lookee))
@@ -82,6 +103,19 @@
 					)
 	:effect (and (looking ?looker ?lookee))
 	:agents (?looker))
+
+  (:action look-from-to
+    :parameters (?looker - char ?former-targ - object ?new-targ - object ?p - place)
+    :precondition (and (at ?looker ?p) (at ?former-targ ?p) (at ?new-targ ?p) (alive ?looker)
+        (looking ?looker ?former-targ))
+    :effect (and (looking ?looker ?new-targ) (not (looking ?looker ?former-targ)))
+    :agents (?looker))
+	
+  (:action carry-from-to
+	:parameters (?carrier - char ?item - item ?p1 - place ?p2 - place)
+	:precondition (and (alive ?carrier) (at ?carrier ?p1) (at ?item ?p1))
+	:effect (and (at ?carrier ?p2) (not (at ?carrier ?p1)) (at ?item ?p2) (not (at ?item ?p1)))
+	:agents (?carrier))
 	
   (:action face-at
 	:parameters (?facer - char ?facee - object)
@@ -89,9 +123,15 @@
 	:effect (and (facing ?facer ?facee))
 	:agents (?facer))
 	
+  (:action face-from-to
+	:parameters (?facer - char ?former-targ - object ?new-targ - object)
+	:precondition(and (alive ?facer) (facing ?facer ?former-targ))
+	:effect (and (facing ?facer ?new-targ) (not (facing ?facer ?former-targ)))
+	:agents (?facer))
+	
   (:action draw-gun
 	:parameters (?drawer - char ?gun - gun)
-	:precondition (and (has ?drawer ?gun) (holstered ?gun) (alive ?victim))
+	:precondition (and (has ?drawer ?gun) (holstered ?gun))
 	:effect (and (not (holstered ?gun)) (raised ?gun))
 	:agents (?drawer))
 	
@@ -136,41 +176,40 @@
   (:action mount
 	:parameters (?rider - char ?horse - horse ?p - place)
 	:precondition (and (alive ?rider) (at ?rider ?p) (at ?horse ?p))
-	:effect (on ?rider ?horse)
+	:effect (on-horse ?rider ?horse)
 	:agents (?rider))
 	
   (:action dismount
 	:parameters (?rider - char ?horse - horse)
-	:precondition (and (alive ?rider) (on ?rider ?horse))
-	:effect (and (not (on ?rider ?horse)))
+	:precondition (and (alive ?rider) (on-horse ?rider ?horse))
+	:effect (and (not (on-horse ?rider ?horse)))
 	:agents (?rider))
 	
   (:action ride
 	:parameters (?rider - char ?horse - horse ?from - place ?to - place)
-	:precondition (and (on ?rider ?horse) (at ?rider ?from))
+	:precondition (and (on-horse ?rider ?horse) (at ?rider ?from))
 	:effect (and (at ?rider ?to) (at ?horse ?to))
 	:agents (?rider))
 	
   (:action reveal
 	:parameters (?revealer - char ?looker - char ?info - literal)
 	:precondition (and (is ?info) (alive ?revealer) (alive ?looker) (looking ?looker ?revealer))
-	:effect (and (bel-char ?looker (is ?info)))
+	:effect (and (bel-char ?looker ?info))
 	:agents (?revealer))
 	
 
   (:action fire-gun
-	:parameters (?cowboy - char ?target - object ?gun - gun ?ammo - n ?loc - place)
+	:parameters (?cowboy - char ?target - object ?gun - gun ?ammo - ammo ?loc - place)
 	:precondition(and (has ?cowboy ?gun)
 					  (at ?cowboy ?loc)
 					  (at ?target ?loc)
-					  (raised ?cowboy ?gun)
+					  (raised ?gun)
 					  (cocked ?gun)
 					  (aimed-at ?gun ?target)
 					  (loaded-with ?gun ?ammo)
-					  (> ?ammo 0)
 					  (alive ?cowboy)
 					  )
-	:effect (and (loaded-with ?gun (subtract ?ammo 1))
+	:effect (and 
 				(shot-at ?gun ?target))
 	:agents (?cowboy))
 	
@@ -187,7 +226,7 @@
 					  (holstered ?gun1)
 					  (holstered ?gun2)
 					)
-	:effect (squared-off ?cowboy1 ?cowboy2 ?loc)
+	:effect (squared-off ?cowboy1 ?cowboy2)
 	:agents (?cowboy1 ?cowboy2)
   )
   
@@ -197,14 +236,14 @@
 						(at ?provokee ?loc) 
 						(alive ?provoker) 
 						(alive ?provokee) 
-						(not (squared-off ?provoker ?provokee ?loc)))
+						(not (squared-off ?provoker ?provokee)))
 	:effect (provoked ?provokee)
 	:agents (?provoker))
 	
   (:action adjust-clothing
 	:parameters (?adjuster - char)
 	:precondition (alive ?adjuster)
-	:effect (adjusted ?adjuster)
+	:effect ()
 	:agents (?adjuster))
 
   (:action holster-gun
@@ -225,27 +264,44 @@
 	:precondition (alive ?side-stepper)
 	:effect ()
 	:agents (?side-stepper))
+	
+  (:action smokes
+	:parameters (?smoker - char ?cig - cig)
+	:precondition(and (alive ?smoker) (has ?smoker ?cig))
+	:effect (smoking ?smoker)
+	:agents (?smoker))
+	
+  (:action drinks
+	:parameters (?drinker - char ?bottle - bottle)
+	:precondition (and (alive ?drinker) (has ?drinker ?bottle))
+	:effect (drinking ?drinker)
+	:agents (?drinker))
 
+  (:action drink-with
+	:parameters (?drinker - char ?other - char ?p - place)
+	:precondition(and (alive ?drinker) (alive ?other) (drinking ?drinker) (at ?drinker ?p) (at ?other ?p))
+	:effect (bel-char ?other (drunk ?drinker))
+	:agents(?drinker))
   
   (:action assent
-	:parameters (?ger - char ?gee - char ?loc - place ?duel-place - place)
+	:parameters (?ger - char ?gee - char ?loc - place)
 	:precondition (and  (alive ?ger) (provoked ?ger) (provoked ?gee)
 						(alive ?gee) 
 						(at ?ger ?loc) 
 						(at ?gee ?loc))
-	:effect (and    (intends ?ger (squared-off ?ger ?gee ?duel-place))
-					(intends ?gee (squared-off ?ger ?gee ?duel-place)))
+	:effect (and    (intends ?ger (squared-off ?ger ?gee))
+					(intends ?gee (squared-off ?ger ?gee))))
 
   (:action de-escalate
-	:parameters (?c1 - char ?c2 - char ?dp - place)
-	:precondition (and (alive ?c1) (alive ?c2) (squared-off ?c1 ?c2 ?dp))
+	:parameters (?c1 - char ?c2 - char)
+	:precondition (and (alive ?c1) (alive ?c2) (squared-off ?c1 ?c2))
 	:effect ()
 	:agents(?c1))
 
   (:action open
 	:parameters (?c1 - char ?d - container ?p1 - place)
-	:precondition (and (alive ?c1) (at ?c1 ?p1) (at ?d ?p1) (not (open ?d)) (unlocked ?d))
-	:effect (open ?d)
+	:precondition (and (alive ?c1) (at ?c1 ?p1) (at ?d ?p1) (not (opened ?d)))
+	:effect (opened ?d)
 	:agents (?c1))
 	
   (:action cheer
@@ -256,9 +312,15 @@
 	
   (:action close
 	:parameters (?c1 - char ?d - container ?p1 - place)
-	:precondition (and (alive ?c1) (at ?c1 ?p1) (at ?d ?p1) (open ?d))
+	:precondition (and (alive ?c1) (at ?c1 ?p1) (at ?d ?p1) (opened ?d))
 	:effect (closed ?d)
 	:agents (?c1))
+	
+  (:action fall-from-to
+	:parameters (?faller - char ?from - place ?to - place)
+	:precondition (at ?faller ?from)
+	:effect (and (at ?faller ?to) (not (at ?faller ?from)) (on-ground ?faller))
+	:agents())
 	
   (:action ask-for
 	:parameters (?asker - char ?haser - char ?item - item ?p - place)
@@ -270,8 +332,8 @@
   (:action identify
 	:parameters (?identifier - char ?recipient - char ?p - place)
 	:precondition (and (alive ?identifier) (at ?identifier ?p) (alive ?recipient) (at ?recipient ?p))
-	:effect ()
-	:agents (?identifier)
+	:effect (bel-char ?identifier (at ?recipient ?p))
+	:agents (?identifier))
 	
   (:action give
 	:parameters (?giver - char ?taker - char ?item - item ?p - place)
@@ -280,6 +342,12 @@
 	:effect (and (has ?taker ?item) (not (has ?giver ?item)))
 	:agents (?giver ?taker)
 	)
+	
+  (:action take-gun
+	:parameters (?taker - char ?gun - gun ?takee - char ?p - place)
+	:precondition(and (alive ?taker) (has ?takee ?gun) (at ?taker ?p) (at ?takee ?P))
+	:effect (and (has ?taker ?gun) (not (has ?takee ?gun)))
+	:agents (?taker))
 
   (:action aim-gun 
 	:parameters (?c1 - char ?t - object ?p - place ?g - gun)
@@ -289,8 +357,8 @@
 
   (:action stand-up
 	:parameters (?c1 - char)
-	:precondition (and (alive ?c1) (sitting ?c1))
-	:effect (standing ?c1)
+	:precondition (and (alive ?c1) (not (standing ?c1)))
+	:effect (and (standing ?c1) (not (on-ground ?c1)))
 	:agents(?c1))
 	
   (:action lower-gun
@@ -311,18 +379,24 @@
 	:precondition(and (has ?c1 ?g) (at ?c1 ?p) (not (at ?g ?p))) 
 	:effect (and (not (has ?c1 ?g)) (at ?g ?p))
 	:agents (?c1))
+
+  (:action pick-up
+    :parameters (?c - char ?thing - item ?p - place)
+    :precondition (and (alive ?c) (at ?thing ?p) (at ?c ?p))
+    :effect (has ?c ?thing)
+    :agent (?c))
 	
   (:action pickup-gun
 	:parameters (?c1 - char ?g - gun ?p - place)
 	:precondition (and 
-			(at ?g ?p) (at ?c1 ?p))
+			(at ?g ?p) (at ?c1 ?p) (alive ?c1))
 	:effect (and
 		(has ?c1 ?g) (not (holstered ?g)))
 	:agents (?c1)
   )
   
   (:action offer-drink
-	:parameters (?c1 - bartender ?c2 - recipient ?p - place)
+	:parameters (?c1 - bartender ?c2 - char ?p - place)
 	:precondition (and (alive ?c1) (alive ?c2) (at ?c1 ?p) (at ?c2 ?p))
 	:effect ()
 	:agents (?c1))
@@ -336,13 +410,7 @@
   (:action cock-gun
 	:parameters (?c1 - char ?g - gun)
 	:precondition (and (has ?c1 ?g) (not (cocked ?g)) (alive ?c1) (not (holstered ?g)))
-	:effect (cocked ?g))
-	:agents (?c1))
-	
-  (:action holster-gun
-	:parameters (?c1 - char ?g - gun)
-	:precondition (and (has ?c1 ?g) (alive ?c1) (not (holstered ?g)))
-	:effect (holstered ?g)
+	:effect (cocked ?g)
 	:agents (?c1))
 	
   (:action wince
